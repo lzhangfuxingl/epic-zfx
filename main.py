@@ -187,7 +187,7 @@ def send_notice_by_mail(title, description, image_url, start_date, end_date, end
         email_msg = MIMEMultipart()
         email_msg['From'] = gmail_user
         email_msg['To'] = to_email
-        email_msg['Subject'] = title
+        email_msg['Subject'] = subject
 
         # 添加 HTML 内容
         email_msg.attach(MIMEText(html_content, 'html'))
