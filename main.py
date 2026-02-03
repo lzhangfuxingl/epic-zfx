@@ -41,6 +41,16 @@ def get_epic_free_games():
                         raw_start_date = offer.get('startDate')  # 获取开始时间
                         print(f"json读取开始时间: {raw_start_date}")
 
+                        # 处理开始时间
+                        if raw_start_date:
+                            try:
+                                dt_start_utc = datetime.strptime(raw_start_date.split('.')[0], "%Y-%m-%dT%H:%M:%S")
+                                dt_start_utc = dt_start_utc.replace(tzinfo=timezone.utc)
+                                dt_start_beijing = dt_start_utc.astimezone(beijing_tz)
+                                start_date = dt_start_beijing.strftime("%Y-%m-%d")
+                            except:
+                                start_date = raw_start_date
+
                         # 处理截止时间
                         if raw_end_date:
                             try:
@@ -48,9 +58,13 @@ def get_epic_free_games():
                                 dt_end_utc = dt_end_utc.replace(tzinfo=timezone.utc)  # 添加 UTC 时区
                                 dt_end_beijing = dt_end_utc.astimezone(beijing_tz)  # 转换为北京时间
                                 end_date_str = dt_end_beijing.strftime("%Y-%m-%d %H:%M:%S") + " (北京时间)"
+                                end_date = dt_end_beijing.strftime("%Y-%m-%d")
                             except:
                                 end_date_str = raw_end_date
+                                end_date = raw_end_date
 
+                        print(f"处理后的开始日期: {start_date}")
+                        print(f"处理后的结束日期: {end_date}")
                         print(f"处理后的截止时间: {end_date_str}")
                         # 【核心逻辑】判断游戏是否“刚上架”
                         # 只有在促销开始的 72 小时内检测到，才算“新消息”并推送。
@@ -101,9 +115,10 @@ def get_epic_free_games():
                 free_games.append({
                     "title": title,
                     "description": description,
-                    "link": link,
                     "image": image_url,
-                    "end_date": end_date_str
+                    "end_date": end_date,
+                    "start_date": start_date,
+                    "end_time": end_date_str
                 })
 
         return free_games
@@ -113,7 +128,7 @@ def get_epic_free_games():
         return []
 
 
-def send_notice_by_mail(title, description, image_url, end_time):
+def send_notice_by_mail(title, description, image_url, start_date, end_date, end_time):
     gmail_user = os.environ.get("GMAIL_USER")
     gmail_password = os.environ.get("GMAIL_APP_PASSWORD")
 
@@ -135,12 +150,14 @@ def send_notice_by_mail(title, description, image_url, end_time):
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
 
+    subject = "Epic喜加一提醒"+"("+start_date+"~"+end_date+")"
+
     # 替换 HTML 中的标题内容
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>{title}</title>
+        <title>{subject}</title>
         <style type="text/css">
             * {{
                 margin: 0;
@@ -151,10 +168,10 @@ def send_notice_by_mail(title, description, image_url, end_time):
     <body>
         <div style="width: 100vw;height: 100vh;background: #f0f9ff;
                     display: flex; flex-direction: column;justify-content: right;align-items: center;">
-            <h2 style="margin-top: 3vh">🔥{title}🔥</h2>
+            <h2 style="margin-top: 3vh">🔥{subject}🔥</h2>
             <img src="{image_url}"
                  alt="游戏宣传图" style="width: 35vw; height: 50vh;"/>
-            <h2 style="margin-top: 1vh">🎮 Definitely Not Fried Chicken</h2>
+            <h2 style="margin-top: 1vh">🎮 {title}</h2>
             <h3 style="margin-top: 0.3vh">⏰ 截止: {end_time}</h3>
             <h3 style="margin-top: 0.3vh; width: 50vw; text-align: justify;">📝{description}</h3>
         </div>
@@ -200,6 +217,6 @@ if __name__ == "__main__":
         for g in games:
             safe_title = html.escape(g['title'])
             safe_desc = html.escape(g['description'])
-            send_notice_by_mail(safe_title, safe_desc, g['image'], g['end_date'])
+            send_notice_by_mail(safe_title, safe_desc, g['image'],g['start_date'], g['end_date'], g['end_time'])
     else:
         print("🤷‍♂️ 今天没有新上架的免费游戏 (可能是旧游戏已通知过)")
