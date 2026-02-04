@@ -1,40 +1,31 @@
-# 🎮 Epic Games Free Notifier | Epic 喜加一通知机器人
 
-[![Epic Free Game Notifier](https://github.com/wwxseo/epic-/actions/workflows/main.yml/badge.svg)](https://github.com/wwxseo/epic-/actions/workflows/main.yml)
-![Python](https://img.shields.io/badge/python-3.9+-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-[中文说明](#-中文说明) | [English Instructions](#-english-instructions)
+# 中文说明
 
----
+本仓库改造自此项目：https://github.com/wwxseo/epic-
 
-# 🇨🇳 中文说明
+大体功能与原项目一致：**每天自动检测** Epic Games Store 的免费游戏，通过Gmail向指定邮箱发送通知邮件。
 
-这是一个基于 GitHub Actions 的全自动化脚本，**每天自动检测** Epic Games Store 的免费游戏，并通过 Telegram Bot 发送精美的图文通知。
-
-**你不需要服务器，不需要懂代码，只要拥有一个 GitHub 账号，就能免费部署属于你自己的通知机器人！**
 
 ## ✨ 核心功能
 
 *   **☁️ 零成本 (Serverless)**：直接利用 GitHub Actions 免费运行，不需要购买云服务器。
 *   **⏰ 全天候监测**：每天北京时间 10:00 自动检查。完美支持**每周四的常规免费**以及**圣诞节/春节期间的每日免费活动**。
-*   **🧠 智能防打扰**：内置去重逻辑。脚本会自动计算游戏上架时间，**只推送 24 小时内新上架的游戏**。如果是旧游戏，机器人会保持安静，不会重复骚扰。
-*   **📸 精美排版**：消息包含游戏**封面大图**、**中文/英文标题**、**简介**、**截止时间**以及**直达领取链接**。
-*   **🛡️ 永久运行**：内置 Keepalive 防暂停机制，防止 GitHub 因为仓库长期无活跃提交而暂停定时任务。
+*   **🧠 智能防打扰**：内置去重逻辑。脚本会自动计算游戏上架时间，**只推送 24 小时内新上架的游戏**。如果是旧游戏，机器人会保持安静，不会重复骚扰。（去除了，本作者希望天天提醒，至少连续提醒5天）
+*   **📸 精美排版**：消息包含游戏**封面大图**、**中文/英文标题**、**简介**、**截止时间**以及**直达领取链接**。（直达领取链接不可用，删除了）
+*   **🛡️ 永久运行**：内置 Keepalive 防暂停机制，防止 GitHub 因为仓库长期无活跃提交而暂停定时任务。（测试不可用，待优化）
 
 ## 🚀 新手部署教程 (只需 3 步)
 
-### 第一步：准备 Telegram 机器人
-*(如果你已经有机器人和 Chat ID，请跳过此步)*
+### 第一步：准备 GMAIL邮箱信息
+*(如果你已经有GMAIL邮箱和二次验证应用密钥，请跳过此步)*
 
-1.  **获取 Bot Token**:
-    *   在 Telegram 搜索 `@BotFather`。
-    *   发送指令 `/newbot`。
-    *   按照提示给机器人起个名字。
-    *   你将获得一串 Token（例如：`123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11`），**复制并保存好**。
-2.  **获取 Chat ID**:
-    *   在 Telegram 搜索 `@userinfobot`。
-    *   点击 `Start`，它会回复一串数字（例如：`123456789`），这就是你的 Chat ID，**复制并保存好**。
+1.  **获取 GMAIL邮箱**:
+    *   在 谷歌官网注册获得。
+    *   你将获得一串 邮箱账号（例如：`xxx@gmail.com`），**复制并保存好**。
+2.  **获取‘两步验证’ 的应用专用密钥 **:
+    *   在 安全性与登录 --> 两步验证 --> 应用专用密码。
+    *   得到专用密钥 **复制并保存好**。
 
 ### 第二步：Fork 本仓库
 1.  点击页面右上角的 **Fork** 按钮。
@@ -46,10 +37,11 @@
 3.  在左侧栏找到 **Secrets and variables** -> 点击 **Actions**。
 4.  点击绿色的 **New repository secret** 按钮，依次添加以下两个变量：
 
-| Name (变量名) | Secret (值) | 说明 |
-| :--- | :--- | :--- |
-| `TG_BOT_TOKEN` | `你的机器人Token` | 刚才找 BotFather 申请的那串字符 |
-| `TG_CHAT_ID` | `你的数字ID` | 刚才找 userinfobot 获取的那串数字 |
+| Name (变量名) | Secret (值)    | 说明                  |
+| :--- |:--------------|:--------------------|
+| `GMAIL_USER` | `GMail邮箱账号`   | Gmail注册得到的邮箱账号      |
+| `GMAIL_APP_PASSWORD` | `GMail应用专用密码` | Gmail两步验证中设置的应用专用密码 |
+| `EMAIL_LIST` | `收件人邮箱列表`     | 多个收件人邮箱，用英文逗号隔开               |
 
 ### 第四步：开启权限 (重要！)
 为了防止 GitHub 60天后自动停止任务，我们需要开启写权限：
@@ -67,74 +59,3 @@
 
 ---
 
-## ❓ 常见问题 (FAQ)
-
-**Q: 我手动运行了，为什么没收到消息？**
-A: 这是正常的！脚本有**去重机制**。如果当前 Epic 的免费游戏是几天前上架的（比如《霍格沃茨之遗》已经送了3天了），脚本会自动跳过，避免重复发消息。
-**只有当 Epic 上架了新游戏（上架时间 < 28小时），你才会收到推送。**
-
-**Q: 什么时候会自动运行？**
-A: 每天北京时间 **上午 10:00** (UTC 02:00)。
-
-**Q: 我能改运行时间吗？**
-A: 可以。修改 `.github/workflows/main.yml` 文件中的 `- cron: '0 2 * * *'` 即可（注意是 UTC 时间）。
-
----
-
-# 🇺🇸 English Instructions
-
-A fully automated GitHub Actions script that checks Epic Games Store for free games daily and sends notifications via Telegram Bot.
-
-**No server required. No coding skills needed. Just Fork and Run.**
-
-## ✨ Features
-
-*   **☁️ Serverless**: Runs entirely on GitHub Actions for free.
-*   **⏰ Daily Check**: Checks every day at 02:00 UTC. Catches both weekly free games and **daily mystery games** during holiday events.
-*   **🧠 Smart Deduplication**: Only pushes notifications for **newly added games** (within 24 hours). Silent for old news.
-*   **📸 Rich Notification**: Includes **Cover Image**, **Title**, **Description**, **End Date**, and **Direct Claim Link**.
-*   **🛡️ Keepalive**: Includes a mechanism to prevent GitHub from suspending the cron job due to inactivity.
-
-## 🚀 Setup Guide
-
-### Step 1: Prepare Telegram Bot
-1.  **Get Bot Token**: Chat with `@BotFather`, send `/newbot` to get your token.
-2.  **Get Chat ID**: Chat with `@userinfobot` to get your numeric user ID.
-
-### Step 2: Fork Repository
-Click the **Fork** button at the top right to copy this repo to your account.
-
-### Step 3: Add Secrets
-Go to your forked repo:
-1.  **Settings** -> **Secrets and variables** -> **Actions**.
-2.  Click **New repository secret** and add:
-
-| Name | Value |
-| :--- | :--- |
-| `TG_BOT_TOKEN` | Your Bot Token |
-| `TG_CHAT_ID` | Your Chat ID |
-
-### Step 4: Enable Permissions (Crucial)
-To allow the keepalive script to work:
-1.  Go to **Settings** -> **Actions** -> **General**.
-2.  Scroll to **Workflow permissions**.
-3.  Select **Read and write permissions**.
-4.  Click **Save**.
-
-### Step 5: Run
-1.  Go to the **Actions** tab.
-2.  Enable workflows if asked.
-3.  Select **Epic Free Game Notifier** on the left.
-4.  Click **Run workflow** to test it.
-
-*(Note: You might not receive a message if the current free game has been available for more than 28 hours. This is the deduplication logic working correctly.)*
-
----
-
-## 📄 License
-MIT License
-## Successful results displayed&成功结果展示
-![Screenshot_2025-12-14-22-27-37-16_948cd9899890cbd5c2798760b2b95377](https://github.com/user-attachments/assets/3e1f1f6b-475c-4bce-9345-0011cb48add8)
-## 🌟 Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=wwxseo/daily-bocchi-bot&type=Date)](https://star-history.com/#wwxseo/daily-bocchi-bot&Date)
