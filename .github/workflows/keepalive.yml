@@ -9,12 +9,18 @@ jobs:
   keepalive:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # 【关键】需要写权限来提交代码
+      contents: write  # 需要写权限来提交代码
     steps:
       - uses: actions/checkout@v3
-      
-      - name: Keepalive Action
-        uses: gautamkrishnar/keepalive-workflow@v1
         with:
-          # 这会自动提交一个空的 commit，防止 GitHub 暂停定时任务
-          commit_message: "Automated keepalive commit"
+          persist-credentials: true  # 保留 GITHUB_TOKEN 用于后续推送
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create empty commit
+        run: |
+          git commit --allow-empty -m "Automated keepalive commit"
+          git push
