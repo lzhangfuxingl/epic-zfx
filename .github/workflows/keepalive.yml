@@ -2,18 +2,19 @@ name: Keepalive Workflow
 
 on:
   schedule:
-    - cron: '0 0 1 * *' # 每月 1 号运行一次
-  workflow_dispatch: # 允许手动运行
+    - cron: '0 0 * * 1'  # 每周 UTC 周一 00:00（北京时间 周一 8:00）
+  workflow_dispatch:     # 允许手动触发
 
 jobs:
   keepalive:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # 需要写权限来提交代码
+      contents: write  # 允许提交和推送
+
     steps:
       - uses: actions/checkout@v3
         with:
-          persist-credentials: true  # 保留 GITHUB_TOKEN 用于后续推送
+          persist-credentials: false  # 不使用持久化凭证，让 GITHUB_TOKEN 自动管理
 
       - name: Configure Git
         run: |
@@ -22,5 +23,7 @@ jobs:
 
       - name: Create empty commit
         run: |
-          git commit --allow-empty -m "Automated keepalive commit"
-          git push
+          git commit --allow-empty -m "Automated weekly keepalive commit - $(date +'%Y-%m-%d %H:%M:%S')"
+
+      - name: Push commit
+        run: git push
