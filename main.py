@@ -27,7 +27,10 @@ def get_epic_free_games():
             if not offers: continue
 
             is_free = False
+            start_date = "未知"
+            end_date = "未知"
             end_date_str = "未知"
+            time_diff = "未知"
             is_new_game = False  # 标记是否为新上架的游戏
 
             for offer_group in offers:
@@ -84,7 +87,7 @@ def get_epic_free_games():
 
                                 # 如果时间差小于 28 小时，说明是刚出的新游戏 -> 推送
                                 # 如果时间差大于 28 小时，说明是昨天的旧消息 -> 不推送
-                                if time_diff < timedelta(hours=125):
+                                if time_diff < timedelta(hours=140):
                                     is_new_game = True
                                 else:
                                     print(f"跳过旧游戏: {game.get('title')} (已上架 {time_diff})")
@@ -118,7 +121,8 @@ def get_epic_free_games():
                     "image": image_url,
                     "end_date": end_date,
                     "start_date": start_date,
-                    "end_time": end_date_str
+                    "end_time": end_date_str,
+                    "time_diff": time_diff
                 })
 
         return free_games
@@ -128,7 +132,7 @@ def get_epic_free_games():
         return []
 
 
-def send_notice_by_mail(title, description, image_url, start_date, end_date, end_time):
+def send_notice_by_mail(title, description, image_url, start_date, end_date, end_time,time_diff):
     gmail_user = os.environ.get("GMAIL_USER")
     gmail_password = os.environ.get("GMAIL_APP_PASSWORD")
 
@@ -168,12 +172,13 @@ def send_notice_by_mail(title, description, image_url, start_date, end_date, end
     <body>
         <div style="width: 100vw;height: 100vh;background: #f0f9ff;
                     display: flex; flex-direction: column;justify-content: right;align-items: center;">
-            <h2 style="margin-top: 3vh">🔥{subject}🔥</h2>
+            <h2 style="margin-top: 5vh">🔥{subject}🔥</h2>
             <img src="{image_url}"
                  alt="游戏宣传图" style="width: 35vw; height: 50vh;"/>
-            <h2 style="margin-top: 1vh">🎮 {title}</h2>
-            <h3 style="margin-top: 0.3vh">⏰ 截止: {end_time}</h3>
-            <h3 style="margin-top: 0.3vh; width: 50vw; text-align: justify;">📝{description}</h3>
+            <h2 style="margin-top: 1.5vh">🎮 {title}</h2>
+            <h3 style="margin-top: 0.6vh">⏰ 截止: {end_time}</h3>
+            <h3 style="margin-top: 0.6vh; width: 50vw; text-align: justify;">📝{description}</h3>
+            <h3 style="margin-top: 0.6vh">📆已发布时间: {time_diff}</h3>
         </div>
     </body>
 </html>"""
@@ -217,6 +222,6 @@ if __name__ == "__main__":
         for g in games:
             safe_title = html.escape(g['title'])
             safe_desc = html.escape(g['description'])
-            send_notice_by_mail(safe_title, safe_desc, g['image'],g['start_date'], g['end_date'], g['end_time'])
+            send_notice_by_mail(safe_title, safe_desc, g['image'],g['start_date'], g['end_date'], g['end_time'],g['time_diff'])
     else:
         print("🤷‍♂️ 今天没有新上架的免费游戏 (可能是旧游戏已通知过)")
